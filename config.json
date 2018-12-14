@@ -1,0 +1,20 @@
+{
+  "language1": {
+    "name": "english",
+    "corpora": [{
+      "./data/corpus/English/all.txt": "HcCorpusPreprocessor"
+    }],
+    "model": null
+  },
+  "language2":{
+    "name": "french",
+    "corpora": [{
+      "./data/corpus/Hindi/all.txt": "HcCorpusPreprocessor"
+    }],
+    "model": null
+  },
+  "bilingual_dict": "./data/bilingual_dictionary/english_hindi_train_bd",
+  "iterations": 5,
+  "silent": false,
+  "verbose": false
+}

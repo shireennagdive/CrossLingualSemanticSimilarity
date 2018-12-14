@@ -1,0 +1,6 @@
+[console_scripts]
+tvecs = tvecs.__main__:args_parser
+
+[setuptools.installation]
+eggsecutable = tvecs.__main__:args_parser
+

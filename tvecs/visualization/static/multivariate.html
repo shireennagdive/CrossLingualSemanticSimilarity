@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    	<link rel="icon" href="../images/favicon_trex.ico"/>
+    	<script type="text/javascript" src="js/jquery-1.12.1.min.js"></script>
+    	<script type="text/javascript" src="js/bootstrap.min.js"></script>
+    	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="/css/tacit.min.css" />
+        <link rel="stylesheet" href="resources/font-awesome/css/font-awesome.min.css">
+        <link href='https://fonts.googleapis.com/css?family=Raleway:500' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" type="text/css" href="css/style.css">
+    <meta charset="utf-8">
+        <style>
+            body {
+                overflow-x: hidden;
+                overflow-y: auto;
+                background: url("../images/background.png");
+                background-size: cover;
+                font-family: 'Raleway', sans-serif;
+                color: #291E14;
+            }
+
+            .switch-menu button {
+                padding: 5px;
+                margin-bottom: 0px;
+            }
+
+            .viz {
+            	text-align: center !important;
+    			border: 2px solid #FFCFAE;
+    			background: #fff;
+    			padding-left: 50px;
+    			padding-top: 50px;
+            }
+
+            svg {
+            	font: 10px sans-serif !important;
+    			padding-top: 20px;
+    			overflow: visible !important;
+            }
+
+            text {
+            	font-size: 2em !important;
+            	font-weight: 200;
+                font-variant: small-caps;
+            }
+
+            .background path {
+            	fill: none;
+            	stroke: #f9e1d1;
+            	shape-rendering: crispEdges;
+            }
+
+            .foreground path {
+            	fill: none;
+            	stroke: #EC7724;
+            }
+
+            .brush .extent {
+            	fill-opacity: .3;
+            	stroke: #fff;
+            	shape-rendering: crispEdges;
+            }
+
+            .axis line, .axis path {
+            	fill: none;
+            	stroke: #544538;
+            	shape-rendering: crispEdges;
+            }
+
+            .axis text {
+            	text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff;
+                fill: #291E14;
+            }
+
+            a {
+            	color: #667D23 !important;
+            }
+        </style>
+    </head>
+    <body>
+    	<div id="main-container">
+    		<div id="multivariate-header">
+    		<div class="switch-menu">
+	      		<a href="/">
+	        		<button class="switch-btn home-btn" title="Home">
+	          			<i class="fa fa-home" aria-hidden="true"></i>
+	        		</button>
+	      		</a>
+		        <a href="/cross_lingual">
+		            <button class="switch-btn switch-cross-lang" title="Cross-Lingual Sementic Space">
+		              <i class="fa fa-language" aria-hidden="true"></i>
+		            </button>
+		        </a>
+		        <a href="/distances">
+	      			<button class="switch-btn switch-distances" title="Distances">
+	        			<i class="fa fa-map-marker tv-chart"></i>
+	      			</button>
+	    		</a>
+    		</div>
+    	</div>
+    	<h1>Exploring T-Vecs Models</h1>
+        </br>
+    	<p>T-Vecs Model Parameters</p>
+    	<ul>
+    		<li><b>Input parameters</b> – Corpus Size (number of words in the corpus), Bilingual Dictionary Size, WordSim Dataset</li>
+    		<li><b>Output parameters</b> – Reduction in Mean Square Error, Correlation Score, P-Value</li>
+    	</ul>
+    	<p>
+            To make sense of the data, we used a data exploration tool called <a href="http://bl.ocks.org/jasondavies/1341281">'Parallel Coordinates'</a>.
+            The visualization, below, is interactive. Filters can be placed on individual vertical axes.
+        </p>
+    	<div class="viz"></div>
+    	<p><small><a href="http://bl.ocks.org/jasondavies/1341281">Credits: Parallel Coordinates by jasondavies</a></small></p>
+    		<table align="center">
+    			<tr><td>ID</td><td>Evaluation Dataset</td></tr>
+    			<tr><td>0</td><td>WS-253-REL</td></tr>
+    			<tr><td>1</td><td>MEN</td></tr>
+    			<tr><td>2</td><td>MTurk-287</td></tr>
+                <tr><td>3</td><td>Mturk-771</td></tr>
+    		</table>
+    	</div>
+
+    	<script src="/js/d3.min.js"></script>
+    	<script>
+
+            var margin = {
+                top : 30,
+                right : 10,
+                bottom : 10,
+                left : 10
+            }, width = 1250 - margin.left - margin.right, height = 500 - margin.top - margin.bottom;
+
+            var x = d3.scale.ordinal().rangePoints([ 0, width ], 1), y = {};
+
+            var line = d3.svg.line(), axis = d3.svg.axis().orient("left"), background, foreground;
+
+            var svg = d3.select(".viz").append("svg").attr("viewBox", "0 0 1300 520").append("g");
+
+            d3.csv("/resources/multivariate.csv", function(error, cars) {
+
+                // Extract the list of dimensions and create a scale for each.
+                x.domain(dimensions = d3.keys(cars[0]).filter(function(d) {
+                    return d != "name" && (y[d] = d3.scale.linear().domain(d3.extent(cars, function(p) {
+                        return +p[d];
+                    })).range([ height, 0 ]));
+                }));
+
+                // Add grey background lines for context.
+                background = svg.append("g").attr("class", "background").selectAll("path").data(cars).enter().append("path").attr("d", path);
+
+                // Add blue foreground lines for focus.
+                foreground = svg.append("g").attr("class", "foreground").selectAll("path").data(cars).enter().append("path").attr("d", path);
+
+                // Add a group element for each dimension.
+                var g = svg.selectAll(".dimension").data(dimensions).enter().append("g").attr("class", "dimension").attr("transform", function(d) {
+                    return "translate(" + x(d) + ")";
+                });
+
+                // Add an axis and title.
+                g.append("g").attr("class", "axis").each(function(d) {
+                    d3.select(this).call(axis.scale(y[d]));
+                }).append("text").style("text-anchor", "middle").attr("y", -9).text(function(d) {
+                    return d;
+                });
+
+                // Add and store a brush for each axis.
+                g.append("g").attr("class", "brush").each(function(d) {
+                    d3.select(this).call(y[d].brush = d3.svg.brush().y(y[d]).on("brush", brush));
+                }).selectAll("rect").attr("x", -8).attr("width", 16);
+            });
+
+            // Returns the path for a given data point.
+            function path(d) {
+                return line(dimensions.map(function(p) {
+                    return [ x(p), y[p](d[p]) ];
+                }));
+            }
+
+            // Handles a brush event, toggling the display of foreground lines.
+            function brush() {
+                var actives = dimensions.filter(function(p) {
+                    return !y[p].brush.empty();
+                }), extents = actives.map(function(p) {
+                    return y[p].brush.extent();
+                });
+                foreground.style("display", function(d) {
+                    return actives.every(function(p, i) {
+                        return extents[i][0] <= d[p] && d[p] <= extents[i][1];
+                    }) ? null : "none";
+                });
+            }
+
+            $(window).on("scroll", function() {
+    			if ($(this).scrollTop() > 100) {
+       				$("header").css("background","#252525");
+    			}
+    			else {
+       				$("header").css("background","#fff");
+    			}
+ 			});
+        </script>
+    </body>
+</html>
